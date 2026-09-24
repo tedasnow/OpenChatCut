@@ -20,6 +20,9 @@ const options: TranscriptionOptions = {
   elevenModel: 'scribe_v2',
   cartesiaApiKey: 'cartesia-test-key',
   cartesiaModel: 'ink-whisper',
+  dashscopeApiKey: 'dashscope-test-key',
+  dashscopeBaseUrl: 'https://dashscope.aliyuncs.com/api/v1',
+  dashscopeModel: 'qwen-audio-3.1-asr-flash-filetrans',
   language: 'en',
   diarization: false,
 };

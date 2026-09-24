@@ -40,6 +40,9 @@ export function transcriptionOptions(): TranscriptionOptions {
     get elevenModel() { return getKey('ELEVENLABS_TRANSCRIPTION_MODEL') || 'scribe_v2'; },
     get cartesiaApiKey() { return getKey('CARTESIA_API_KEY'); },
     get cartesiaModel() { return getKey('CARTESIA_TRANSCRIPTION_MODEL') || 'ink-whisper'; },
+    get dashscopeApiKey() { return getKey('DASHSCOPE_API_KEY'); },
+    get dashscopeBaseUrl() { return getKey('DASHSCOPE_BASE_URL') || 'https://dashscope.aliyuncs.com/api/v1'; },
+    get dashscopeModel() { return getKey('DASHSCOPE_TRANSCRIPTION_MODEL') || 'qwen-audio-3.1-asr-flash-filetrans'; },
     get language() { return getKey('TRANSCRIPTION_LANGUAGE') || 'zh'; },
     get diarization() { return getKey('TRANSCRIPTION_DIARIZATION') !== '0'; },
   };

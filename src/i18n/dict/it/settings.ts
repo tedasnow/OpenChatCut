@@ -349,6 +349,11 @@ const overrides: Record<string, string> = {
   'Groq（云端）': 'Groq (cloud)',
   'ElevenLabs Scribe（云端）': 'ElevenLabs Scribe (cloud)',
   'Cartesia（云端）': 'Cartesia (cloud)',
+  'Qwen ASR · 阿里云百炼（云端）': 'Qwen ASR · Alibaba Cloud Bailian (cloud)',
+  'Qwen ASR · 阿里云百炼': 'Qwen ASR · Alibaba Cloud Bailian',
+  '默认 https://dashscope.aliyuncs.com/api/v1（百炼）；千问 AI 平台用 https://maas.qianwenaiapi.com/api/v1': 'Predefinito https://dashscope.aliyuncs.com/api/v1 (Bailian); per la piattaforma QwenAI usa https://maas.qianwenaiapi.com/api/v1',
+  '异步文件转写：词级时间戳 + 说话人分离。百炼端点支持零配置临时上传；千问平台端点需已配置 Cloudflare R2（音频经预签名 URL 暂存）。':
+    'Trascrizione file asincrona con timestamp a livello di parola e diarizzazione. L\'endpoint Bailian supporta l\'upload temporaneo senza configurazione; l\'endpoint QwenAI richiede Cloudflare R2 (l\'audio viene preparato tramite URL prefirmato).',
   'AssemblyAI（默认）': 'AssemblyAI (predefinito)',
   '转写模型': 'Modello trascrizione',
   '节拍与音乐分析模型': 'Modelli ritmo e analisi musica',

@@ -113,6 +113,7 @@ const CAP_PROVIDERS: Partial<Record<CapabilityKey, ProviderRow[]>> = {
     { label: 'Groq', arg: 'groq', argKey: 'provider', need: [['GROQ_API_KEY']] },
     { label: 'ElevenLabs Scribe', arg: 'elevenlabs', argKey: 'provider', need: [['ELEVENLABS_API_KEY']] },
     { label: 'Cartesia', arg: 'cartesia', argKey: 'provider', need: [['CARTESIA_API_KEY']] },
+    { label: 'Qwen ASR (DashScope)', arg: 'dashscope', argKey: 'provider', need: [['DASHSCOPE_API_KEY']] },
   ],
 };
 

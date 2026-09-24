@@ -17,7 +17,7 @@ If a capability is off, say so and offer alternatives (upload, library, another 
 | Music | `submit_music` | `MUREKA_API_KEY`, `MINIMAX_API_KEY`, `ATLASCLOUD_API_KEY` |
 | Sound FX gen | `submit_sound` | `ELEVENLABS_API_KEY` |
 | Stock search | `search_stock_media` | `PEXELS_API_KEY`, `PIXABAY_API_KEY`, `UNSPLASH_ACCESS_KEY`, `FREESOUND_API_KEY` |
-| Transcription | `transcribe_track` | The provider selected in Settings (or an explicit configured override): AssemblyAI (default), local, OpenAI, Mistral, Deepgram, Groq, ElevenLabs, or Cartesia |
+| Transcription | `transcribe_track` | The provider selected in Settings (or an explicit configured override): AssemblyAI (default), local, OpenAI, Mistral, Deepgram, Groq, ElevenLabs, Cartesia, or Qwen ASR (DashScope) |
 | Web | `web_browser` | `FIRECRAWL_API_KEY` |
 | Sandbox / ffmpeg helpers | `run_code` | `E2B_API_KEY` (if used) |
 | LLM agent | chat | Configure one or more independent provider triplets: `LLM_<PROVIDER>_BASE_URL`, `LLM_<PROVIDER>_API_KEY`, and `LLM_<PROVIDER>_MODEL`. Supported provider tokens are `ANTHROPIC`, `OPENAI`, `GEMINI`, `KIMI`, `QWEN`, `GLM`, `DEEPSEEK`, `MINIMAX`, and `MISTRAL`. `LLM_PROVIDER` controls the initially selected chat provider. |
@@ -58,6 +58,15 @@ default, and local transcription needs no cloud key. Cloud choices use:
   to `scribe_v2`
 - Cartesia: `CARTESIA_API_KEY`; `CARTESIA_TRANSCRIPTION_MODEL` defaults to
   `ink-whisper` (batch transcription; `ink-2` is streaming-only)
+- Qwen ASR (DashScope): `DASHSCOPE_API_KEY` / optional `DASHSCOPE_BASE_URL` /
+  `DASHSCOPE_TRANSCRIPTION_MODEL` (defaults to
+  `qwen-audio-3.1-asr-flash-filetrans`). Async file transcription with
+  word-level timestamps and sentence-level speaker diarization. Audio must be
+  staged at a fetchable URL: the Bailian endpoint
+  (`https://dashscope.aliyuncs.com/api/v1`, default) uses DashScope's zero-config
+  temp upload; the QwenAI-platform endpoint
+  (`https://maas.qianwenaiapi.com/api/v1`) requires Cloudflare R2 to be
+  configured so audio can be staged via a presigned URL.
 
 `TRANSCRIPTION_LANGUAGE` defaults to `zh`, and
 `TRANSCRIPTION_DIARIZATION` defaults to `1`. Credentials stay server-side;

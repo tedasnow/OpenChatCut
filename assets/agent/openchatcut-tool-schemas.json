@@ -475,7 +475,8 @@
               "deepgram",
               "groq",
               "elevenlabs",
-              "cartesia"
+              "cartesia",
+              "dashscope"
             ],
             "description": "Optional configured provider override. Omit to use the provider selected in Settings."
           }
@@ -701,7 +702,8 @@
               "deepgram",
               "groq",
               "elevenlabs",
-              "cartesia"
+              "cartesia",
+              "dashscope"
             ],
             "description": "retry_transcription: optional configured provider override, same values as transcribe_track. Omit to use the provider selected in Settings."
           },

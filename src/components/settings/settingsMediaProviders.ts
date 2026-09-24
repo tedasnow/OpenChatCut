@@ -193,6 +193,7 @@ export const TRANSCRIPTION_SETTINGS_GROUP: SettingsGroup = {
     { value: 'groq', label: 'Groq（云端）' },
     { value: 'elevenlabs', label: 'ElevenLabs Scribe（云端）' },
     { value: 'cartesia', label: 'Cartesia（云端）' },
+    { value: 'dashscope', label: 'Qwen ASR · 阿里云百炼（云端）' },
   ], 'AssemblyAI（默认）'),
   vendors: [
     transcriptionPage('assemblyai', 'assemblyai', 'AssemblyAI', [secret('ASSEMBLYAI_API_KEY', 'API Key')]),
@@ -224,6 +225,11 @@ export const TRANSCRIPTION_SETTINGS_GROUP: SettingsGroup = {
       secret('CARTESIA_API_KEY', 'API Key'),
       modelText('CARTESIA_TRANSCRIPTION_MODEL', '转写模型', 'ink-whisper'),
     ]),
+    transcriptionPage('dashscope', 'qwen', 'Qwen ASR · 阿里云百炼', [
+      secret('DASHSCOPE_API_KEY', 'API Key'),
+      text('DASHSCOPE_BASE_URL', 'Base URL', '默认 https://dashscope.aliyuncs.com/api/v1（百炼）；千问 AI 平台用 https://maas.qianwenaiapi.com/api/v1'),
+      modelText('DASHSCOPE_TRANSCRIPTION_MODEL', '转写模型', 'qwen-audio-3.1-asr-flash-filetrans'),
+    ], '异步文件转写：词级时间戳 + 说话人分离。百炼端点支持零配置临时上传；千问平台端点需已配置 Cloudflare R2（音频经预签名 URL 暂存）。'),
   ],
 };
 
@@ -246,6 +252,7 @@ export const ROUTE_NEEDS: Record<string, readonly (readonly string[])[]> = {
   local: [[]],
   deepgram: [['DEEPGRAM_API_KEY']],
   groq: [['GROQ_API_KEY']],
+  dashscope: [['DASHSCOPE_API_KEY']],
   seedance2: [['SEEDANCE_API_KEY']],
   kling: [['KLING_API_KEY']],
   hailuo: [['MINIMAX_API_KEY']],

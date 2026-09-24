@@ -112,6 +112,11 @@ export default {
   'Groq（云端）': 'Groq (cloud)',
   'ElevenLabs Scribe（云端）': 'ElevenLabs Scribe (cloud)',
   'Cartesia（云端）': 'Cartesia (cloud)',
+  'Qwen ASR · 阿里云百炼（云端）': 'Qwen ASR · Alibaba Cloud Bailian (cloud)',
+  'Qwen ASR · 阿里云百炼': 'Qwen ASR · Alibaba Cloud Bailian',
+  '默认 https://dashscope.aliyuncs.com/api/v1（百炼）；千问 AI 平台用 https://maas.qianwenaiapi.com/api/v1': 'Default https://dashscope.aliyuncs.com/api/v1 (Bailian); for the QwenAI platform use https://maas.qianwenaiapi.com/api/v1',
+  '异步文件转写：词级时间戳 + 说话人分离。百炼端点支持零配置临时上传；千问平台端点需已配置 Cloudflare R2（音频经预签名 URL 暂存）。':
+    'Async file transcription with word-level timestamps and speaker diarization. The Bailian endpoint supports zero-config temp upload; the QwenAI-platform endpoint requires Cloudflare R2 (audio is staged via a presigned URL).',
   '中文（zh）': 'Chinese (zh)',
   '英语（en）': 'English (en)',
   '意大利语（it）': 'Italian (it)',

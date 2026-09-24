@@ -439,6 +439,36 @@ export async function presignGetUpload(
   return { downloadUrl, fileKey: key, expiresIn };
 }
 
+/** Stage a transient object outside the media sync prefix (e.g. ASR audio staged for a cloud
+ *  transcription fetch). Returns false when R2 or presign is unavailable — without presign the
+ *  object would be unreadable to third parties anyway. */
+export async function putTempObject(key: string, body: UploadBody, contentType?: string): Promise<boolean> {
+  const cfg = r2Config();
+  if (!cfg || !r2PresignEnabled()) return false;
+  await clientFor(cfg).send(new PutObjectCommand({
+    Bucket: cfg.bucket,
+    Key: key,
+    Body: body,
+    ContentType: contentType || 'application/octet-stream',
+  }));
+  return true;
+}
+
+/** Presigned GET for a temp object staged with putTempObject. */
+export async function presignTempGetUrl(key: string, expiresIn = 3600): Promise<string | null> {
+  const cfg = r2Config();
+  if (!cfg || !r2PresignEnabled()) return null;
+  return getSignedUrl(clientFor(cfg), new GetObjectCommand({ Bucket: cfg.bucket, Key: key }), { expiresIn });
+}
+
+/** Best-effort temp-object cleanup. Returns false when R2 is not configured. */
+export async function deleteTempObject(key: string): Promise<boolean> {
+  const cfg = r2Config();
+  if (!cfg) return false;
+  await clientFor(cfg).send(new DeleteObjectCommand({ Bucket: cfg.bucket, Key: key }));
+  return true;
+}
+
 /** Test connection probe: HeadBucket synthetic response (bucket exists + authentication passed = 200).
  * S3 errors are mapped to the corresponding HTTP status to classifyStatus; network layer errors are thrown to networkMessage as they are.*/
 export async function r2Probe(get: Get): Promise<Response> {

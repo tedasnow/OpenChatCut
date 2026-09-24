@@ -6,6 +6,7 @@ import { createGroq } from '@ai-sdk/groq';
 import { createOpenAI } from '@ai-sdk/openai';
 
 import { versionedApiBaseUrl } from './media-provider-config.ts';
+import { transcribeDashscopeAudio } from './dashscope-asr.ts';
 
 import type {
   CloudTranscriptionProvider,
@@ -15,8 +16,9 @@ import type {
   NormalizedTranscriptWord,
   TranscriptionOptions,
 } from './transcription-types.ts';
+import { TranscriptionConfigurationError } from './transcription-types.ts';
 
-export class TranscriptionConfigurationError extends Error {}
+export { TranscriptionConfigurationError };
 
 function requireProviderKey(options: TranscriptionOptions, provider: CloudTranscriptionProvider): string {
   if (provider === 'cartesia' && /^ink-2(?:-|$)/i.test(options.cartesiaModel)) {
@@ -29,9 +31,12 @@ function requireProviderKey(options: TranscriptionOptions, provider: CloudTransc
       : provider === 'deepgram' ? options.deepgramApiKey
         : provider === 'groq' ? options.groqApiKey
           : provider === 'elevenlabs' ? options.elevenApiKey
-            : options.cartesiaApiKey;
+            : provider === 'dashscope' ? options.dashscopeApiKey
+              : options.cartesiaApiKey;
   if (key) return key;
-  const label = provider === 'elevenlabs' ? 'ElevenLabs' : provider[0]!.toUpperCase() + provider.slice(1);
+  const label = provider === 'elevenlabs' ? 'ElevenLabs'
+    : provider === 'dashscope' ? 'Qwen ASR (DashScope)'
+      : provider[0]!.toUpperCase() + provider.slice(1);
   throw new TranscriptionConfigurationError(`${label} API key is not configured`);
 }
 
@@ -162,6 +167,9 @@ export async function transcribeCloudAudio(
   options: TranscriptionOptions,
   request: CloudTranscriptionRequest,
 ): Promise<NormalizedTranscriptResult> {
+  // DashScope filetrans is an async URL-based API with its own upload/poll
+  // pipeline — it does not go through the AI SDK transcribe() path.
+  if (request.provider === 'dashscope') return transcribeDashscopeAudio(options, request);
   const result = await runProvider(options, request);
   const raw = (result.responses[0] as unknown as { body?: unknown } | undefined)?.body;
   const providerWords = normalizedRawWords(request.provider, raw);

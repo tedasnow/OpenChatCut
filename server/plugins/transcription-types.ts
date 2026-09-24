@@ -5,9 +5,13 @@ export const CLOUD_TRANSCRIPTION_PROVIDERS = [
   'groq',
   'elevenlabs',
   'cartesia',
+  'dashscope',
 ] as const;
 
 export type CloudTranscriptionProvider = (typeof CLOUD_TRANSCRIPTION_PROVIDERS)[number];
+
+/** Provider misconfiguration (missing key, unsupported model) — maps to HTTP 400. */
+export class TranscriptionConfigurationError extends Error {}
 
 export interface TranscriptionOptions {
   openaiBaseUrl: string;
@@ -25,6 +29,9 @@ export interface TranscriptionOptions {
   elevenModel: string;
   cartesiaApiKey: string;
   cartesiaModel: string;
+  dashscopeApiKey: string;
+  dashscopeBaseUrl: string;
+  dashscopeModel: string;
   language: string;
   diarization: boolean;
 }
