@@ -252,7 +252,13 @@ export async function setKeys(patch: Record<string, unknown>): Promise<void> {
   );
   const isolated = isIsolatedDevProfile(ACTIVE_PROFILE);
   const merged = mergeEnvText(existing, clean, isolated);
-  await atomicWriteFile(ENV_PATH, merged, { mode: 0o600 });
+  // Skip the disk write when the merge is a no-op. In the default profile
+  // ENV_PATH is the checkout's .env.local, which Vite watches: rewriting
+  // identical content restarts the dev server, and a startup-time clear
+  // (e.g. initXaiOauth) would then loop the restart forever.
+  if (merged !== existing) {
+    await atomicWriteFile(ENV_PATH, merged, { mode: 0o600 });
+  }
   for (const [name, v] of clean) {
     if (v) {
       store.set(name, v);
