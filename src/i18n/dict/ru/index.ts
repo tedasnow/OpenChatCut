@@ -1684,6 +1684,8 @@ export const RU: Record<string, string> = {
   'ElevenLabs Scribe（云端）': 'ElevenLabs Scribe (облако)',
   'Cartesia（云端）': 'Cartesia (облако)',
   'Qwen ASR · 阿里云百炼（云端）': 'Qwen ASR · Alibaba Cloud Bailian (облако)',
+  '连接成功 · 鉴权通过；但该端点的临时上传不可用，需配置 Cloudflare R2 才能转写（音频经 R2 预签名 URL 暂存）':
+    'Подключение успешно, но временная загрузка на этом endpoint недоступна — настройте Cloudflare R2 для транскрипции (аудио размещается через предподписанный URL R2).',
   'Qwen ASR · 阿里云百炼': 'Qwen ASR · Alibaba Cloud Bailian',
   '默认 https://dashscope.aliyuncs.com/api/v1（百炼）；千问 AI 平台用 https://maas.qianwenaiapi.com/api/v1': 'По умолчанию https://dashscope.aliyuncs.com/api/v1 (Bailian); для платформы QwenAI используйте https://maas.qianwenaiapi.com/api/v1',
   '异步文件转写：词级时间戳 + 说话人分离。百炼端点支持零配置临时上传；千问平台端点需已配置 Cloudflare R2（音频经预签名 URL 暂存）。':

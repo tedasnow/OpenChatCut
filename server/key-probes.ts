@@ -72,8 +72,9 @@ interface ProbeDef {
   readonly run: (get: Get) => Promise<Response>;
   /** 2xx may also be a provider-level failure (MiniMax base_resp); return error text, null = true success */
   readonly postCheck?: (bodyText: string) => string | null;
-  /** Custom conclusion when successful (non-network check such as local disk probe); null/default = general "connection successful" */
-  readonly okText?: (bodyText: string) => string | null;
+  /** Custom conclusion when successful (non-network check such as local disk probe); null/default = general "connection successful".
+   *  Receives the resolved getter so a probe can warn about missing companion config (e.g. R2 staging). */
+  readonly okText?: (bodyText: string, get: Get) => string | null;
   /** Parse a successful model-catalog response. Only LLM provider pages use this. */
   readonly models?: (bodyText: string) => string[];
 }
@@ -407,6 +408,22 @@ export const PROBES: Record<string, ProbeDef> = {
         signal: t(), headers: bearer(get('DASHSCOPE_API_KEY')),
       });
     },
+    // Green still means the key works, but non-Bailian endpoints cannot use the
+    // getPolicy temp upload — warn when R2 staging is unavailable.
+    okText: (_body, get) => {
+      const baseUrl = base(get, 'DASHSCOPE_BASE_URL', 'https://dashscope.aliyuncs.com/api/v1');
+      let host = '';
+      try {
+        host = new URL(baseUrl).hostname;
+      } catch {
+        return null;
+      }
+      if (host.endsWith('.aliyuncs.com')) return null;
+      const r2Ready = get('R2_ENABLED') !== '0'
+        && ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET']
+          .every((name) => get(name as KeyName).length > 0);
+      return r2Ready ? null : '连接成功 · 鉴权通过；但该端点的临时上传不可用，需配置 Cloudflare R2 才能转写（音频经 R2 预签名 URL 暂存）';
+    },
   },
   'sandbox/e2b': {
     needs: [['E2B_API_KEY']],
@@ -477,7 +494,7 @@ export async function runProbe(page: string, overrides: Record<string, unknown>)
       const modelText = models
         ? models.length > 0 ? ` · 已读取 ${models.length} 个模型` : ' · 接口未返回模型列表'
         : '';
-      const okText = probe.okText?.(bodyText) ?? '连接成功 · 鉴权通过';
+      const okText = probe.okText?.(bodyText, get) ?? '连接成功 · 鉴权通过';
       return {
         ok: true,
         status: response.status,

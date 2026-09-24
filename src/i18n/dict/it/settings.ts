@@ -222,6 +222,8 @@ const overrides: Record<string, string> = {
   '选择模型': 'Scegli modello',
   '测试请求失败 ({n})': 'Richiesta di test non riuscita ({n})',
   '该厂商暂不支持连接测试': 'Questo provider non supporta ancora il test di connessione',
+  '连接成功 · 鉴权通过；但该端点的临时上传不可用，需配置 Cloudflare R2 才能转写（音频经 R2 预签名 URL 暂存）':
+    'Connessione riuscita e autenticata, ma l\'upload temporaneo non è disponibile su questo endpoint: configura Cloudflare R2 per abilitare la trascrizione (l\'audio viene preparato tramite URL prefirmato R2).',
   '（按当前输入测试，记得保存）': ' (testato con i valori correnti: ricordati di salvare)',
   '发一条最小请求验证 Key 与地址可用': 'Invia una richiesta minima per verificare chiave ed endpoint',
   '使用当前代理地址访问外网探测端点': 'Usa il proxy corrente per raggiungere un endpoint esterno di prova',
