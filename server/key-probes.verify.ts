@@ -33,6 +33,7 @@ const EXPECTED_PAGES = [
   'stock/pexels', 'stock/pixabay', 'stock/unsplash', 'stock/freesound',
   'transcription/assemblyai', 'transcription/openai', 'transcription/mistral',
   'transcription/deepgram', 'transcription/groq', 'transcription/elevenlabs', 'transcription/cartesia',
+  'transcription/dashscope',
   'sandbox/e2b',
   'web/firecrawl',
   'storage/r2', 'storage/local',

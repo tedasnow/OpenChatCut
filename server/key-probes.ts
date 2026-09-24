@@ -396,6 +396,18 @@ export const PROBES: Record<string, ProbeDef> = {
   'transcription/groq': groqProbe,
   'transcription/elevenlabs': elevenLabsProbe,
   'transcription/cartesia': cartesiaProbe,
+  // getPolicy doubles as a capability probe: it validates the key AND the temp-upload
+  // path the async filetrans flow depends on (the QwenAI-platform endpoint answers it too).
+  'transcription/dashscope': {
+    needs: [['DASHSCOPE_API_KEY']],
+    run: (get) => {
+      const baseUrl = base(get, 'DASHSCOPE_BASE_URL', 'https://dashscope.aliyuncs.com/api/v1');
+      const model = get('DASHSCOPE_TRANSCRIPTION_MODEL') || 'qwen-audio-3.1-asr-flash-filetrans';
+      return fetch(`${baseUrl}/uploads?action=getPolicy&model=${encodeURIComponent(model)}`, {
+        signal: t(), headers: bearer(get('DASHSCOPE_API_KEY')),
+      });
+    },
+  },
   'sandbox/e2b': {
     needs: [['E2B_API_KEY']],
     run: (get) => fetch('https://api.e2b.dev/sandboxes', {
