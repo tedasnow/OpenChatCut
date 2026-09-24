@@ -229,7 +229,7 @@ export const TRANSCRIPTION_SETTINGS_GROUP: SettingsGroup = {
       secret('DASHSCOPE_API_KEY', 'API Key'),
       text('DASHSCOPE_BASE_URL', 'Base URL', '默认 https://dashscope.aliyuncs.com/api/v1（百炼）；千问 AI 平台用 https://maas.qianwenaiapi.com/api/v1'),
       modelText('DASHSCOPE_TRANSCRIPTION_MODEL', '转写模型', 'qwen-audio-3.1-asr-flash-filetrans'),
-    ], '异步文件转写：词级时间戳 + 说话人分离。百炼端点支持零配置临时上传；千问平台端点需已配置 Cloudflare R2（音频经预签名 URL 暂存）。'),
+    ], '异步文件转写：词级时间戳 + 说话人分离。需配置 Cloudflare R2：音频先经 R2 预签名 URL 暂存，再交给模型拉取。'),
   ],
 };
 

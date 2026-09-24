@@ -61,12 +61,9 @@ default, and local transcription needs no cloud key. Cloud choices use:
 - Qwen ASR (DashScope): `DASHSCOPE_API_KEY` / optional `DASHSCOPE_BASE_URL` /
   `DASHSCOPE_TRANSCRIPTION_MODEL` (defaults to
   `qwen-audio-3.1-asr-flash-filetrans`). Async file transcription with
-  word-level timestamps and sentence-level speaker diarization. Audio must be
-  staged at a fetchable URL: the Bailian endpoint
-  (`https://dashscope.aliyuncs.com/api/v1`, default) uses DashScope's zero-config
-  temp upload; the QwenAI-platform endpoint
-  (`https://maas.qianwenaiapi.com/api/v1`) requires Cloudflare R2 to be
-  configured so audio can be staged via a presigned URL.
+  word-level timestamps and sentence-level speaker diarization. The filetrans
+  API only accepts a fetchable URL, so audio is staged through the configured
+  Cloudflare R2 store with a presigned URL — R2 is required for this provider.
 
 `TRANSCRIPTION_LANGUAGE` defaults to `zh`, and
 `TRANSCRIPTION_DIARIZATION` defaults to `1`. Credentials stay server-side;

@@ -115,8 +115,8 @@ export default {
   'Qwen ASR · 阿里云百炼（云端）': 'Qwen ASR · Alibaba Cloud Bailian (cloud)',
   'Qwen ASR · 阿里云百炼': 'Qwen ASR · Alibaba Cloud Bailian',
   '默认 https://dashscope.aliyuncs.com/api/v1（百炼）；千问 AI 平台用 https://maas.qianwenaiapi.com/api/v1': 'Default https://dashscope.aliyuncs.com/api/v1 (Bailian); for the QwenAI platform use https://maas.qianwenaiapi.com/api/v1',
-  '异步文件转写：词级时间戳 + 说话人分离。百炼端点支持零配置临时上传；千问平台端点需已配置 Cloudflare R2（音频经预签名 URL 暂存）。':
-    'Async file transcription with word-level timestamps and speaker diarization. The Bailian endpoint supports zero-config temp upload; the QwenAI-platform endpoint requires Cloudflare R2 (audio is staged via a presigned URL).',
+  '异步文件转写：词级时间戳 + 说话人分离。需配置 Cloudflare R2：音频先经 R2 预签名 URL 暂存，再交给模型拉取。':
+    'Async file transcription with word-level timestamps and speaker diarization. Requires Cloudflare R2: audio is staged via an R2 presigned URL for the model to fetch.',
   '中文（zh）': 'Chinese (zh)',
   '英语（en）': 'English (en)',
   '意大利语（it）': 'Italian (it)',
@@ -327,8 +327,8 @@ export default {
   '选择模型': 'Choose model',
   '测试请求失败 ({n})': 'Test request failed ({n})',
   '该厂商暂不支持连接测试': 'This provider does not support connection testing yet',
-  '连接成功 · 鉴权通过；但该端点的临时上传不可用，需配置 Cloudflare R2 才能转写（音频经 R2 预签名 URL 暂存）':
-    'Connected and authenticated, but temp upload is unavailable on this endpoint — configure Cloudflare R2 to enable transcription (audio is staged via an R2 presigned URL).',
+  '连接成功 · 鉴权通过；但需配置 Cloudflare R2 才能转写（音频经 R2 预签名 URL 暂存）':
+    'Connected and authenticated, but Cloudflare R2 is required for transcription (audio is staged via an R2 presigned URL).',
   '（按当前输入测试，记得保存）': ' (tested with current input — remember to save)',
   '发一条最小请求验证 Key 与地址可用': 'Sends one minimal request to verify the key and endpoint',
   '使用当前代理地址访问外网探测端点': 'Uses the current proxy address to reach an external connectivity endpoint',

@@ -1684,12 +1684,12 @@ export const RU: Record<string, string> = {
   'ElevenLabs Scribe（云端）': 'ElevenLabs Scribe (облако)',
   'Cartesia（云端）': 'Cartesia (облако)',
   'Qwen ASR · 阿里云百炼（云端）': 'Qwen ASR · Alibaba Cloud Bailian (облако)',
-  '连接成功 · 鉴权通过；但该端点的临时上传不可用，需配置 Cloudflare R2 才能转写（音频经 R2 预签名 URL 暂存）':
-    'Подключение успешно, но временная загрузка на этом endpoint недоступна — настройте Cloudflare R2 для транскрипции (аудио размещается через предподписанный URL R2).',
+  '连接成功 · 鉴权通过；但需配置 Cloudflare R2 才能转写（音频经 R2 预签名 URL 暂存）':
+    'Подключение успешно, но для транскрипции требуется Cloudflare R2 (аудио размещается через предподписанный URL R2).',
   'Qwen ASR · 阿里云百炼': 'Qwen ASR · Alibaba Cloud Bailian',
   '默认 https://dashscope.aliyuncs.com/api/v1（百炼）；千问 AI 平台用 https://maas.qianwenaiapi.com/api/v1': 'По умолчанию https://dashscope.aliyuncs.com/api/v1 (Bailian); для платформы QwenAI используйте https://maas.qianwenaiapi.com/api/v1',
-  '异步文件转写：词级时间戳 + 说话人分离。百炼端点支持零配置临时上传；千问平台端点需已配置 Cloudflare R2（音频经预签名 URL 暂存）。':
-    'Асинхронная файловая транскрипция: пословные временные метки и диаризация говорящих. Endpoint Bailian поддерживает временную загрузку без настройки; endpoint QwenAI требует Cloudflare R2 (аудио размещается через предподписанный URL).',
+  '异步文件转写：词级时间戳 + 说话人分离。需配置 Cloudflare R2：音频先经 R2 预签名 URL 暂存，再交给模型拉取。':
+    'Асинхронная файловая транскрипция: пословные временные метки и диаризация говорящих. Требуется Cloudflare R2: аудио размещается через предподписанный URL R2 для загрузки моделью.',
   '中文（zh）': 'Китайский (zh)',
   '英语（en）': 'Английский (en)',
   '日语（ja）': 'Японский (ja)',

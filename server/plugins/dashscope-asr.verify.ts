@@ -21,7 +21,7 @@ const options: TranscriptionOptions = {
   cartesiaApiKey: '',
   cartesiaModel: '',
   dashscopeApiKey: 'dashscope-test-key',
-  dashscopeBaseUrl: 'https://dashscope.aliyuncs.com/api/v1',
+  dashscopeBaseUrl: 'https://maas.qianwenaiapi.com/api/v1',
   dashscopeModel: 'qwen-audio-3.1-asr-flash-filetrans',
   language: 'zh',
   diarization: true,
@@ -75,19 +75,37 @@ function makeFetch(handlers: Array<{ match: (url: string, init?: RequestInit) =>
 
 const noSleep = () => Promise.resolve();
 
-// ── 1. Bailian endpoint: getPolicy upload → submit → poll → normalize ──
-{
-  const { fetchFn, seen } = makeFetch([
+const expectedResult = {
+  text: '你好世界\n说了半天白说\n没有词级细节',
+  words: [
+    { text: '你好', start: 520, end: 1000, speaker: '0' },
+    { text: '世界', start: 1240, end: 2120, speaker: '0' },
+    { text: '说了半天白说', start: 24310, end: 25470, speaker: '1' },
+    { text: '没有词级细节', start: 30000, end: 31000, speaker: '0' },
+  ],
+  utterances: [
     {
-      match: (url) => url.includes('/uploads?action=getPolicy'),
-      respond: () => okJson({
-        data: {
-          policy: 'p', signature: 's', oss_access_key_id: 'ak',
-          upload_dir: 'dashscope-instant/acct/2026-09-24', upload_host: 'https://oss.test',
-        },
-      }),
+      speaker: '0', text: '你好世界', start: 520, end: 2120,
+      words: [
+        { text: '你好', start: 520, end: 1000, speaker: '0' },
+        { text: '世界', start: 1240, end: 2120, speaker: '0' },
+      ],
     },
-    { match: (url) => url.startsWith('https://oss.test'), respond: () => new Response(null, { status: 200 }) },
+    {
+      speaker: '1', text: '说了半天白说', start: 24310, end: 25470,
+      words: [{ text: '说了半天白说', start: 24310, end: 25470, speaker: '1' }],
+    },
+    {
+      speaker: '0', text: '没有词级细节', start: 30000, end: 31000,
+      words: [{ text: '没有词级细节', start: 30000, end: 31000, speaker: '0' }],
+    },
+  ],
+};
+
+// ── 1. R2 presigned staging → submit → poll → normalize ──
+{
+  let cleanedUp = false;
+  const { fetchFn } = makeFetch([
     {
       match: (url, init) => url.includes('/services/audio/asr/transcription') && init?.method === 'POST',
       respond: (_url, init) => {
@@ -97,12 +115,11 @@ const noSleep = () => Promise.resolve();
           parameters: Record<string, unknown>;
         };
         assert.equal(body.model, 'qwen-audio-3.1-asr-flash-filetrans');
-        assert.match(body.input.file_urls[0]!, /^oss:\/\/dashscope-instant\/acct\/2026-09-24\/.+\.mp3$/);
+        assert.match(body.input.file_urls[0]!, /^https:\/\/r2\.test\/asr-tmp\/.+\.mp3\?sig=/);
         assert.deepEqual(body.parameters, {
           channel_id: [0], enable_words: true, diarization_enabled: true, language_hints: ['zh'],
         });
-        const headers = new Headers(init?.headers);
-        assert.equal(headers.get('X-DashScope-Async'), 'enable');
+        assert.equal(new Headers(init?.headers).get('X-DashScope-Async'), 'enable');
         return okJson({ output: { task_id: 'task-1', task_status: 'PENDING' } });
       },
     },
@@ -125,161 +142,68 @@ const noSleep = () => Promise.resolve();
 
   const result = await transcribeDashscopeAudio(options, {
     provider: 'dashscope', audio, language: 'zh', diarize: true,
-  }, { fetchFn, sleep: noSleep });
-
-  assert.deepEqual(result, {
-    text: '你好世界\n说了半天白说\n没有词级细节',
-    words: [
-      { text: '你好', start: 520, end: 1000, speaker: '0' },
-      { text: '世界', start: 1240, end: 2120, speaker: '0' },
-      { text: '说了半天白说', start: 24310, end: 25470, speaker: '1' },
-      { text: '没有词级细节', start: 30000, end: 31000, speaker: '0' },
-    ],
-    utterances: [
-      {
-        speaker: '0', text: '你好世界', start: 520, end: 2120,
-        words: [
-          { text: '你好', start: 520, end: 1000, speaker: '0' },
-          { text: '世界', start: 1240, end: 2120, speaker: '0' },
-        ],
-      },
-      {
-        speaker: '1', text: '说了半天白说', start: 24310, end: 25470,
-        words: [{ text: '说了半天白说', start: 24310, end: 25470, speaker: '1' }],
-      },
-      {
-        speaker: '0', text: '没有词级细节', start: 30000, end: 31000,
-        words: [{ text: '没有词级细节', start: 30000, end: 31000, speaker: '0' }],
-      },
-    ],
-  });
-  assert.ok(seen.some((url) => url.includes('/uploads?action=getPolicy')), 'Bailian endpoint must try getPolicy first');
-  console.log('dashscope-asr.verify: ok (Bailian getPolicy path + normalization)');
-}
-
-// ── 2. QwenAI-platform endpoint: R2 is preferred, oss:// never submitted ──
-{
-  let stagedKey = '';
-  let cleanedUp = false;
-  const { fetchFn, seen } = makeFetch([
-    {
-      match: (url) => url.includes('/services/audio/asr/transcription'),
-      respond: (_url, init) => {
-        const body = JSON.parse(String(init?.body)) as { input: { file_urls: string[] } };
-        assert.match(body.input.file_urls[0]!, /^https:\/\/r2\.test\/asr-tmp\/.+\.mp3\?sig=/);
-        return okJson({ output: { task_id: 'task-2', task_status: 'PENDING' } });
-      },
-    },
-    {
-      match: (url) => url.endsWith('/tasks/task-2'),
-      respond: () => okJson({
-        output: { task_status: 'SUCCEEDED', results: [{ transcription_url: 'https://result.test/out.json' }] },
-      }),
-    },
-    { match: (url) => url === 'https://result.test/out.json', respond: () => okJson(transcriptionPayload) },
-  ]);
-
-  const result = await transcribeDashscopeAudio(
-    { ...options, dashscopeBaseUrl: 'https://maas.qianwenaiapi.com/api/v1' },
-    { provider: 'dashscope', audio, language: 'zh', diarize: true },
-    {
-      fetchFn,
-      sleep: noSleep,
-      stageR2: async (_bytes, ext) => {
-        stagedKey = `asr-tmp/test.${ext}`;
-        return {
-          url: `https://r2.test/${stagedKey}?sig=abc`,
-          cleanup: async () => { cleanedUp = true; },
-        };
-      },
-    },
-  );
-  assert.equal(result.words.length, 4);
-  assert.ok(!seen.some((url) => url.includes('/uploads?action=getPolicy')), 'QwenAI endpoint must skip getPolicy');
-  assert.ok(cleanedUp, 'R2 temp object must be cleaned up after success');
-  console.log('dashscope-asr.verify: ok (QwenAI endpoint → R2 presigned staging + cleanup)');
-}
-
-// ── 3. Bailian oss:// rejected → falls back to R2 ──
-{
-  let r2Used = false;
-  const { fetchFn } = makeFetch([
-    {
-      match: (url) => url.includes('/uploads?action=getPolicy'),
-      respond: () => okJson({
-        data: {
-          policy: 'p', signature: 's', oss_access_key_id: 'ak',
-          upload_dir: 'dashscope-instant/acct', upload_host: 'https://oss.test',
-        },
-      }),
-    },
-    { match: (url) => url.startsWith('https://oss.test'), respond: () => new Response(null, { status: 200 }) },
-    {
-      match: (url) => url.includes('/services/audio/asr/transcription'),
-      respond: (_url, init) => {
-        const body = JSON.parse(String(init?.body)) as { input: { file_urls: string[] } };
-        return okJson({
-          output: {
-            task_id: body.input.file_urls[0]!.startsWith('oss://') ? 'task-oss' : 'task-r2',
-            task_status: 'PENDING',
-          },
-        });
-      },
-    },
-    {
-      match: (url) => url.endsWith('/tasks/task-oss'),
-      respond: () => okJson({
-        output: { task_status: 'FAILED', code: 'REQUEST_INVALID_FILE_URL_VALUE', message: 'REQUEST_INVALID_FILE_URL_VALUE' },
-      }),
-    },
-    {
-      match: (url) => url.endsWith('/tasks/task-r2'),
-      respond: () => okJson({
-        output: { task_status: 'SUCCEEDED', results: [{ transcription_url: 'https://result.test/out.json' }] },
-      }),
-    },
-    { match: (url) => url === 'https://result.test/out.json', respond: () => okJson(transcriptionPayload) },
-  ]);
-
-  const result = await transcribeDashscopeAudio(options, {
-    provider: 'dashscope', audio, language: 'zh', diarize: true,
   }, {
     fetchFn,
     sleep: noSleep,
-    stageR2: async () => {
-      r2Used = true;
-      return { url: 'https://r2.test/asr-tmp/x.mp3?sig=abc', cleanup: async () => {} };
-    },
+    stageR2: async () => ({
+      url: 'https://r2.test/asr-tmp/x.mp3?sig=abc',
+      cleanup: async () => { cleanedUp = true; },
+    }),
   });
-  assert.equal(r2Used, true);
-  assert.equal(result.words.length, 4);
-  console.log('dashscope-asr.verify: ok (oss:// rejection falls back to R2)');
+  assert.deepEqual(result, expectedResult);
+  assert.ok(cleanedUp, 'R2 temp object must be cleaned up after success');
+  console.log('dashscope-asr.verify: ok (R2 staging + poll + normalization + cleanup)');
 }
 
-// ── 4. No staging available → configuration error with guidance ──
+// ── 2. OGG audio is staged with the .ogg extension ──
 {
+  const ogg = new Uint8Array([0x4f, 0x67, 0x67, 0x53, 1, 2, 3, 4]); // "OggS"
   const { fetchFn } = makeFetch([
     {
-      match: (url) => url.includes('/uploads?action=getPolicy'),
-      respond: () => new Response('not found', { status: 404 }),
+      match: (url) => url.includes('/services/audio/asr/transcription'),
+      respond: (_url, init) => {
+        const body = JSON.parse(String(init?.body)) as { input: { file_urls: string[] } };
+        assert.match(body.input.file_urls[0]!, /\.ogg\?sig=/);
+        return okJson({ output: { task_id: 'task-ogg', task_status: 'PENDING' } });
+      },
     },
+    {
+      match: (url) => url.endsWith('/tasks/task-ogg'),
+      respond: () => okJson({
+        output: { task_status: 'SUCCEEDED', results: [{ transcription_url: 'https://result.test/out.json' }] },
+      }),
+    },
+    { match: (url) => url === 'https://result.test/out.json', respond: () => okJson(transcriptionPayload) },
   ]);
+  const result = await transcribeDashscopeAudio(options, {
+    provider: 'dashscope', audio: ogg, language: 'auto', diarize: false,
+  }, {
+    fetchFn,
+    sleep: noSleep,
+    stageR2: async (_bytes, ext) => ({ url: `https://r2.test/asr-tmp/x.${ext}?sig=abc`, cleanup: async () => {} }),
+  });
+  assert.equal(result.words.length, 4);
+  console.log('dashscope-asr.verify: ok (ogg extension sniffing)');
+}
+
+// ── 3. R2 unavailable → configuration error with guidance ──
+{
+  const { fetchFn, seen } = makeFetch([]);
   await assert.rejects(
-    transcribeDashscopeAudio(
-      { ...options, dashscopeBaseUrl: 'https://maas.qianwenaiapi.com/api/v1' },
-      { provider: 'dashscope', audio, language: 'zh', diarize: false },
-      { fetchFn, sleep: noSleep, stageR2: async () => null },
-    ),
+    transcribeDashscopeAudio(options, {
+      provider: 'dashscope', audio, language: 'zh', diarize: false,
+    }, { fetchFn, sleep: noSleep, stageR2: async () => null }),
     (error: unknown) => {
       assert.ok(error instanceof TranscriptionConfigurationError);
       assert.match(error.message, /R2/);
       return true;
     },
   );
-  console.log('dashscope-asr.verify: ok (no staging → actionable configuration error)');
+  assert.equal(seen.length, 0, 'no network request may happen without staged audio');
+  console.log('dashscope-asr.verify: ok (R2 missing → actionable configuration error)');
 }
 
-// ── 5. Task failure is surfaced with code/message ──
+// ── 4. Task failure is surfaced with code/message ──
 {
   const { fetchFn } = makeFetch([
     {
@@ -294,16 +218,39 @@ const noSleep = () => Promise.resolve();
     },
   ]);
   await assert.rejects(
-    transcribeDashscopeAudio(
-      { ...options, dashscopeBaseUrl: 'https://maas.qianwenaiapi.com/api/v1' },
-      { provider: 'dashscope', audio, language: 'auto', diarize: false },
-      {
-        fetchFn,
-        sleep: noSleep,
-        stageR2: async () => ({ url: 'https://r2.test/asr-tmp/x.mp3?sig=abc', cleanup: async () => {} }),
-      },
-    ),
+    transcribeDashscopeAudio(options, {
+      provider: 'dashscope', audio, language: 'auto', diarize: false,
+    }, {
+      fetchFn,
+      sleep: noSleep,
+      stageR2: async () => ({ url: 'https://r2.test/asr-tmp/x.mp3?sig=abc', cleanup: async () => {} }),
+    }),
     /FILE_DOWNLOAD_FAILED.*cannot fetch/,
   );
   console.log('dashscope-asr.verify: ok (task failure surfaces code/message)');
+}
+
+// ── 5. Invalid key surfaces as a configuration error ──
+{
+  const { fetchFn } = makeFetch([
+    {
+      match: (url) => url.includes('/services/audio/asr/transcription'),
+      respond: () => new Response('{"code":"Unauthorized"}', { status: 401 }),
+    },
+  ]);
+  await assert.rejects(
+    transcribeDashscopeAudio(options, {
+      provider: 'dashscope', audio, language: 'auto', diarize: false,
+    }, {
+      fetchFn,
+      sleep: noSleep,
+      stageR2: async () => ({ url: 'https://r2.test/asr-tmp/x.mp3?sig=abc', cleanup: async () => {} }),
+    }),
+    (error: unknown) => {
+      assert.ok(error instanceof TranscriptionConfigurationError);
+      assert.match(error.message, /401/);
+      return true;
+    },
+  );
+  console.log('dashscope-asr.verify: ok (401 → configuration error)');
 }

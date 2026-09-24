@@ -408,21 +408,13 @@ export const PROBES: Record<string, ProbeDef> = {
         signal: t(), headers: bearer(get('DASHSCOPE_API_KEY')),
       });
     },
-    // Green still means the key works, but non-Bailian endpoints cannot use the
-    // getPolicy temp upload — warn when R2 staging is unavailable.
+    // The key can be valid while transcription still cannot run: filetrans only
+    // accepts a fetchable URL, and audio is staged via R2 presigned URLs.
     okText: (_body, get) => {
-      const baseUrl = base(get, 'DASHSCOPE_BASE_URL', 'https://dashscope.aliyuncs.com/api/v1');
-      let host = '';
-      try {
-        host = new URL(baseUrl).hostname;
-      } catch {
-        return null;
-      }
-      if (host.endsWith('.aliyuncs.com')) return null;
       const r2Ready = get('R2_ENABLED') !== '0'
         && ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET']
           .every((name) => get(name as KeyName).length > 0);
-      return r2Ready ? null : '连接成功 · 鉴权通过；但该端点的临时上传不可用，需配置 Cloudflare R2 才能转写（音频经 R2 预签名 URL 暂存）';
+      return r2Ready ? null : '连接成功 · 鉴权通过；但需配置 Cloudflare R2 才能转写（音频经 R2 预签名 URL 暂存）';
     },
   },
   'sandbox/e2b': {
