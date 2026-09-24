@@ -473,20 +473,24 @@ export async function runProbe(page: string, overrides: Record<string, unknown>)
   // writability check reads the panel's raw value directly.
   if (page === 'storage/projects') return runDataDirProbe(overrides);
   const probe = PROBES[page];
-  if (!probe) return { ok: false, message: '该厂商暂不支持连接测试' };
+  if (!probe) {
+    console.warn(`[key-probe] ${page} → no probe registered`);
+    return { ok: false, message: '该厂商暂不支持连接测试' };
+  }
   const get = makeGetter(overrides);
   const ready = probe.needs.some((group) => group.every((n) => get(n).length > 0));
-  if (!ready) return { ok: false, message: '尚未填写 API Key · 填好后再点测试' };
+  if (!ready) {
+    console.warn(`[key-probe] ${page} → skipped (required keys not filled)`);
+    return { ok: false, message: '尚未填写 API Key · 填好后再点测试' };
+  }
   const started = Date.now();
   try {
     const response = await probe.run(get);
     const latencyMs = Date.now() - started;
     const bodyText = await response.text().catch(() => '');
-    // Server-side audit trail for failed probes: which endpoint was hit and what
-    // came back. Response.url carries no credentials (keys travel in headers).
-    if (!response.ok) {
-      console.warn(`[key-probe] ${page} → HTTP ${response.status} ${response.url || '(url unknown)'}`);
-    }
+    // Server-side audit trail for every probe: which page hit which endpoint and
+    // what came back. Response.url carries no credentials (keys travel in headers).
+    console.log(`[key-probe] ${page} → HTTP ${response.status} ${response.url || '(url unknown)'} (${latencyMs}ms)`);
     if (response.ok) {
       const vendorError = probe.postCheck?.(bodyText) ?? null;
       if (vendorError) return { ok: false, status: response.status, latencyMs, message: vendorError };
@@ -505,6 +509,7 @@ export async function runProbe(page: string, overrides: Record<string, unknown>)
     }
     return { ...classifyStatus(response.status, bodyText), latencyMs };
   } catch (error) {
+    console.warn(`[key-probe] ${page} → network error: ${error instanceof Error ? error.message : String(error)}`);
     return { ok: false, latencyMs: Date.now() - started, message: networkMessage(error) };
   }
 }
