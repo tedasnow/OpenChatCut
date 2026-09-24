@@ -465,6 +465,11 @@ export async function runProbe(page: string, overrides: Record<string, unknown>)
     const response = await probe.run(get);
     const latencyMs = Date.now() - started;
     const bodyText = await response.text().catch(() => '');
+    // Server-side audit trail for failed probes: which endpoint was hit and what
+    // came back. Response.url carries no credentials (keys travel in headers).
+    if (!response.ok) {
+      console.warn(`[key-probe] ${page} → HTTP ${response.status} ${response.url || '(url unknown)'}`);
+    }
     if (response.ok) {
       const vendorError = probe.postCheck?.(bodyText) ?? null;
       if (vendorError) return { ok: false, status: response.status, latencyMs, message: vendorError };
